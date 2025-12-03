@@ -407,6 +407,84 @@ async def export_pdf(report_data: dict):
                     ('GRID', (0, 0), (-1, -1), 1, colors.black)
                 ]))
                 elements.append(table_mant)
+                elements.append(Spacer(1, 20))
+
+                # 4. Distribución por Categoría
+                elements.append(Paragraph("<b>4. Distribución por Categoría</b>", styles['Heading2']))
+                elements.append(Spacer(1, 10))
+
+                rows_cat = await conn.fetch("""
+                    SELECT c.nombre, COUNT(*) as cantidad
+                    FROM equipos e
+                    JOIN categorias_equipos c ON e.categoria_id = c.id
+                    GROUP BY c.nombre
+                    ORDER BY cantidad DESC
+                """)
+
+                data_cat = [['Categoría', 'Cantidad']]
+                for row in rows_cat:
+                    data_cat.append([row['nombre'], str(row['cantidad'])])
+
+                table_cat = Table(data_cat, colWidths=[200, 100])
+                table_cat.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.darkgreen),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black)
+                ]))
+                elements.append(table_cat)
+                elements.append(Spacer(1, 20))
+
+                # 5. Top Proveedores
+                elements.append(Paragraph("<b>5. Top Proveedores (por Equipos)</b>", styles['Heading2']))
+                elements.append(Spacer(1, 10))
+
+                rows_prov = await conn.fetch("""
+                    SELECT p.razon_social, COUNT(*) as cantidad
+                    FROM equipos e
+                    JOIN proveedores p ON e.proveedor_id = p.id
+                    GROUP BY p.razon_social
+                    ORDER BY cantidad DESC
+                    LIMIT 5
+                """)
+
+                data_prov = [['Proveedor', 'Equipos Suministrados']]
+                for row in rows_prov:
+                    data_prov.append([row['razon_social'], str(row['cantidad'])])
+
+                table_prov = Table(data_prov, colWidths=[250, 100])
+                table_prov.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.darkorange),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black)
+                ]))
+                elements.append(table_prov)
+                elements.append(Spacer(1, 20))
+
+                # 6. Resumen de Mantenimientos
+                elements.append(Paragraph("<b>6. Resumen de Mantenimientos</b>", styles['Heading2']))
+                elements.append(Spacer(1, 10))
+
+                rows_mant_summary = await conn.fetch("""
+                    SELECT estado, COUNT(*) as cantidad, COALESCE(SUM(costo), 0) as costo_total
+                    FROM mantenimientos
+                    GROUP BY estado
+                """)
+
+                data_mant_sum = [['Estado', 'Cantidad', 'Costo Total']]
+                for row in rows_mant_summary:
+                    data_mant_sum.append([
+                        row['estado'], 
+                        str(row['cantidad']), 
+                        f"${row['costo_total']:,.2f}"
+                    ])
+
+                table_mant_sum = Table(data_mant_sum, colWidths=[150, 100, 150])
+                table_mant_sum.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.purple),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black)
+                ]))
+                elements.append(table_mant_sum)
         
         doc.build(elements)
         
