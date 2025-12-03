@@ -111,11 +111,11 @@ with tab1:
         # Aplicar colores según estado
         def color_estado(val):
             if val == 'operativo':
-                return 'background-color: #d4edda'
+                return 'background-color: #d4edda; color: black'
             elif val == 'en_reparacion':
-                return 'background-color: #fff3cd'
+                return 'background-color: #fff3cd; color: black'
             elif val == 'obsoleto':
-                return 'background-color: #f8d7da'
+                return 'background-color: #f8d7da; color: black'
             return ''
         
         if 'Estado' in df_mostrar.columns:
