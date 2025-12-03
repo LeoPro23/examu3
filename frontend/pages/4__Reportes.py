@@ -381,9 +381,7 @@ with tab4:
             
             st.plotly_chart(fig, use_container_width=True)
     
-    st.markdown("---")
-    st.markdown("### 📈 Tendencias")
-    st.info("💡 Análisis predictivo y tendencias estarán disponibles en próximas versiones")
+
 
 # Footer
 st.markdown("---")
