@@ -18,7 +18,7 @@ def get_dashboard_data():
     try:
         response = requests.get(f"{API_URL}/api/reportes/dashboard", timeout=10)
         if response.status_code == 200:
-            return response.json()
+            return response.json() or {}
         return None
     except:
         return None
@@ -27,7 +27,7 @@ def get_equipos_por_ubicacion():
     try:
         response = requests.get(f"{API_URL}/api/reportes/equipos-por-ubicacion", timeout=10)
         if response.status_code == 200:
-            return response.json()
+            return response.json() or []
         return []
     except:
         return []
@@ -36,7 +36,7 @@ def get_equipos_por_estado():
     try:
         response = requests.get(f"{API_URL}/api/reportes/equipos-por-estado", timeout=10)
         if response.status_code == 200:
-            return response.json()
+            return response.json() or []
         return []
     except:
         return []
@@ -45,7 +45,7 @@ def get_equipos_por_categoria():
     try:
         response = requests.get(f"{API_URL}/api/reportes/equipos-por-categoria", timeout=10)
         if response.status_code == 200:
-            return response.json()
+            return response.json() or []
         return []
     except:
         return []
@@ -55,7 +55,7 @@ def get_costos_mantenimiento(year=None):
     try:
         response = requests.get(f"{API_URL}/api/reportes/costos-mantenimiento", params=params, timeout=10)
         if response.status_code == 200:
-            return response.json()
+            return response.json() or []
         return []
     except:
         return []
@@ -64,7 +64,7 @@ def get_equipos_antiguedad():
     try:
         response = requests.get(f"{API_URL}/api/reportes/equipos-antiguedad", timeout=10)
         if response.status_code == 200:
-            return response.json()
+            return response.json() or []
         return []
     except:
         return []

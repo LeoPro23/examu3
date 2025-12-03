@@ -22,7 +22,7 @@ def get_equipos(categoria=None, estado=None):
     try:
         response = requests.get(f"{API_URL}/api/equipos/equipos", params=params, timeout=10)
         if response.status_code == 200:
-            return response.json()
+            return response.json() or []
         return []
     except Exception as e:
         st.error(f"Error: {e}")
@@ -32,7 +32,7 @@ def get_categorias():
     try:
         response = requests.get(f"{API_URL}/api/equipos/categorias", timeout=10)
         if response.status_code == 200:
-            return response.json()
+            return response.json() or []
         return []
     except:
         return []
@@ -41,7 +41,7 @@ def get_ubicaciones():
     try:
         response = requests.get(f"{API_URL}/api/equipos/ubicaciones", timeout=10)
         if response.status_code == 200:
-            return response.json()
+            return response.json() or []
         return []
     except:
         return []
@@ -50,7 +50,7 @@ def get_proveedores():
     try:
         response = requests.get(f"{API_URL}/api/proveedores/proveedores", timeout=10)
         if response.status_code == 200:
-            return response.json()
+            return response.json() or []
         return []
     except:
         return []
