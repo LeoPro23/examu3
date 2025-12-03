@@ -16,8 +16,20 @@ app = FastAPI(title="Reportes Service", version="1.0.0")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+POOL = None
+
+@app.on_event("startup")
+async def startup_db():
+    global POOL
+    POOL = await asyncpg.create_pool(DATABASE_URL)
+
+@app.on_event("shutdown")
+async def shutdown_db():
+    if POOL:
+        await POOL.close()
+
 async def get_db_pool():
-    return await asyncpg.create_pool(DATABASE_URL)
+    return POOL
 
 @app.get("/health")
 async def health_check():
@@ -117,18 +129,23 @@ async def get_equipos_por_categoria():
 async def get_equipos_antiguedad():
     pool = await get_db_pool()
     
+    # Fix: Repeat the CASE expression in GROUP BY to avoid alias issues in some contexts
+    # Or use a subquery. Using subquery is cleaner.
     query = """
-        SELECT 
-            CASE 
-                WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, fecha_compra)) < 1 THEN 'Menos de 1 año'
-                WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, fecha_compra)) BETWEEN 1 AND 2 THEN '1-2 años'
-                WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, fecha_compra)) BETWEEN 3 AND 4 THEN '3-4 años'
-                WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, fecha_compra)) BETWEEN 5 AND 6 THEN '5-6 años'
-                ELSE 'Más de 6 años'
-            END as rango_antiguedad,
-            COUNT(*) as cantidad
-        FROM equipos
-        WHERE fecha_compra IS NOT NULL
+        WITH antiguedad_calc AS (
+            SELECT 
+                CASE 
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, fecha_compra)) < 1 THEN 'Menos de 1 año'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, fecha_compra)) BETWEEN 1 AND 2 THEN '1-2 años'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, fecha_compra)) BETWEEN 3 AND 4 THEN '3-4 años'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, fecha_compra)) BETWEEN 5 AND 6 THEN '5-6 años'
+                    ELSE 'Más de 6 años'
+                END as rango_antiguedad
+            FROM equipos
+            WHERE fecha_compra IS NOT NULL
+        )
+        SELECT rango_antiguedad, COUNT(*) as cantidad
+        FROM antiguedad_calc
         GROUP BY rango_antiguedad
         ORDER BY 
             CASE rango_antiguedad

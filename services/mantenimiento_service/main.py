@@ -9,8 +9,20 @@ app = FastAPI(title="Mantenimiento Service", version="1.0.0")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+POOL = None
+
+@app.on_event("startup")
+async def startup_db():
+    global POOL
+    POOL = await asyncpg.create_pool(DATABASE_URL)
+
+@app.on_event("shutdown")
+async def shutdown_db():
+    if POOL:
+        await POOL.close()
+
 async def get_db_pool():
-    return await asyncpg.create_pool(DATABASE_URL)
+    return POOL
 
 class MantenimientoCreate(BaseModel):
     equipo_id: int
