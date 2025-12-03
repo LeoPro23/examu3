@@ -22,10 +22,10 @@ MANTENIMIENTO_SERVICE_URL = os.getenv("MANTENIMIENTO_SERVICE_URL", "http://mante
 REPORTES_SERVICE_URL = os.getenv("REPORTES_SERVICE_URL", "http://reportes-service:8004")
 AGENT_SERVICE_URL = os.getenv("AGENT_SERVICE_URL", "http://agent-service:8005")
 
-async def forward_request(method: str, url: str, params: dict = None, json_data: dict = None):
+async def forward_request(method: str, url: str, params: dict = None, content: bytes = None, headers: dict = None):
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.request(method, url, params=params, json=json_data, timeout=30.0)
+            response = await client.request(method, url, params=params, content=content, headers=headers, timeout=30.0)
             return response
         except httpx.RequestError as exc:
             raise HTTPException(status_code=503, detail=f"Error connecting to service: {exc}")
@@ -63,32 +63,22 @@ async def startup_db():
     except Exception as e:
         print(f"Startup error: {e}")
 
-# --- Rutas Equipos ---
-@app.api_route("/api/equipos/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-async def equipos_proxy(path: str, request: Request):
-    url = f"{EQUIPOS_SERVICE_URL}/equipos/{path}" if path else f"{EQUIPOS_SERVICE_URL}/equipos"
-    # Ajuste para rutas que no empiezan con /equipos en el servicio destino si fuera necesario,
-    # pero asumiendo que el servicio destino maneja /equipos o la raíz.
-    # Revisando equipos_service/main.py, las rutas son /equipos, /equipos/{id}, etc.
-    # Si el path viene vacío, es /equipos. Si viene "1", es /equipos/1.
-    
-    # Sin embargo, el gateway recibe /api/equipos...
-    # Si la ruta es /api/equipos, path es "" -> url = .../equipos
-    # Si la ruta es /api/equipos/1, path es "1" -> url = .../equipos/1
-    
-    # Pero el servicio equipos tiene rutas como /categorias y /ubicaciones también.
-    # Necesitamos un proxy más genérico o rutas específicas.
-    
-    # Vamos a hacer un proxy más inteligente o mapear rutas específicas.
-    pass
-
 # Mejor enfoque: Proxy genérico por prefijo
 async def proxy(service_url: str, path: str, request: Request):
     url = f"{service_url}/{path}"
-    body = await request.json() if request.method in ["POST", "PUT", "PATCH"] else None
+    
+    # Read body as bytes
+    content = await request.body()
+    
+    # Get params
     params = dict(request.query_params)
     
-    response = await forward_request(request.method, url, params, body)
+    # Forward headers (exclude host and content-length as httpx handles them)
+    headers = dict(request.headers)
+    headers.pop("host", None)
+    headers.pop("content-length", None)
+    
+    response = await forward_request(request.method, url, params, content, headers)
     return Response(content=response.content, status_code=response.status_code, media_type=response.headers.get("content-type"))
 
 @app.api_route("/api/equipos/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
