@@ -306,27 +306,107 @@ async def export_pdf(report_data: dict):
                 LIMIT 50
             """
             headers = ['Código', 'Nombre', 'Categoría', 'Estado', 'Ubicación']
-        
-        async with pool.acquire() as conn:
-            rows = await conn.fetch(query)
             
-            data = [headers]
-            for row in rows:
-                data.append([str(val)[:30] if val else '' for val in row])
-            
-            table = Table(data)
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black)
-            ]))
-            
-            elements.append(table)
+            async with pool.acquire() as conn:
+                rows = await conn.fetch(query)
+                
+                data = [headers]
+                for row in rows:
+                    data.append([str(val)[:30] if val else '' for val in row])
+                
+                table = Table(data)
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 10),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black)
+                ]))
+                
+                elements.append(table)
+
+        elif report_type == "general":
+            async with pool.acquire() as conn:
+                # 1. Resumen Ejecutivo
+                elements.append(Paragraph("<b>1. Resumen Ejecutivo</b>", styles['Heading2']))
+                elements.append(Spacer(1, 10))
+                
+                total_equipos = await conn.fetchval("SELECT COUNT(*) FROM equipos")
+                equipos_operativos = await conn.fetchval("SELECT COUNT(*) FROM equipos WHERE estado_operativo = 'operativo'")
+                valor_total = await conn.fetchval("SELECT COALESCE(SUM(costo_compra), 0) FROM equipos")
+                
+                data_resumen = [
+                    ['Métrica', 'Valor'],
+                    ['Total Equipos', str(total_equipos)],
+                    ['Equipos Operativos', str(equipos_operativos)],
+                    ['Valor Inventario', f"${valor_total:,.2f}"]
+                ]
+                
+                table_resumen = Table(data_resumen, colWidths=[200, 200])
+                table_resumen.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black)
+                ]))
+                elements.append(table_resumen)
+                elements.append(Spacer(1, 20))
+                
+                # 2. Distribución por Estado
+                elements.append(Paragraph("<b>2. Distribución por Estado</b>", styles['Heading2']))
+                elements.append(Spacer(1, 10))
+                
+                rows_estado = await conn.fetch("""
+                    SELECT estado_operativo, COUNT(*) as cantidad 
+                    FROM equipos GROUP BY estado_operativo ORDER BY cantidad DESC
+                """)
+                
+                data_estado = [['Estado', 'Cantidad']]
+                for row in rows_estado:
+                    data_estado.append([row['estado_operativo'], str(row['cantidad'])])
+                    
+                table_estado = Table(data_estado, colWidths=[200, 100])
+                table_estado.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black)
+                ]))
+                elements.append(table_estado)
+                elements.append(Spacer(1, 20))
+                
+                # 3. Últimos Mantenimientos
+                elements.append(Paragraph("<b>3. Mantenimientos Recientes</b>", styles['Heading2']))
+                elements.append(Spacer(1, 10))
+                
+                rows_mant = await conn.fetch("""
+                    SELECT m.fecha_programada, e.nombre, m.tipo, m.estado
+                    FROM mantenimientos m
+                    JOIN equipos e ON m.equipo_id = e.id
+                    ORDER BY m.fecha_programada DESC
+                    LIMIT 10
+                """)
+                
+                data_mant = [['Fecha', 'Equipo', 'Tipo', 'Estado']]
+                for row in rows_mant:
+                    data_mant.append([
+                        str(row['fecha_programada']), 
+                        row['nombre'][:20], 
+                        row['tipo'], 
+                        row['estado']
+                    ])
+                    
+                table_mant = Table(data_mant)
+                table_mant.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.darkred),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('FONTSIZE', (0, 0), (-1, -1), 8),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black)
+                ]))
+                elements.append(table_mant)
         
         doc.build(elements)
         

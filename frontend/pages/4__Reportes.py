@@ -264,7 +264,7 @@ with tab3:
         
         tipo_reporte_pdf = st.selectbox(
             "Tipo de Reporte (PDF)",
-            ["equipos", "mantenimientos", "proveedores"]
+            ["general", "equipos", "mantenimientos", "proveedores"]
         )
         
         if st.button("📥 Generar PDF", use_container_width=True):
