@@ -277,9 +277,14 @@ with tab3:
                     )
                     
                     if response.status_code == 200:
-                        result = response.json()
-                        st.success(f"✅ PDF generado: {result.get('filename', 'N/A')}")
-                        st.info("El archivo se guardó en el servidor")
+                        st.success("✅ Reporte generado exitosamente")
+                        st.download_button(
+                            label="⬇️ Descargar PDF",
+                            data=response.content,
+                            file_name=f"reporte_{tipo_reporte_pdf}_{datetime.now().strftime('%Y%m%d')}.pdf",
+                            mime="application/pdf",
+                            use_container_width=True
+                        )
                     else:
                         st.error("Error al generar PDF")
                 except Exception as e:
@@ -304,9 +309,14 @@ with tab3:
                     )
                     
                     if response.status_code == 200:
-                        result = response.json()
-                        st.success(f"✅ Excel generado: {result.get('filename', 'N/A')}")
-                        st.info("El archivo se guardó en el servidor")
+                        st.success("✅ Reporte generado exitosamente")
+                        st.download_button(
+                            label="⬇️ Descargar Excel",
+                            data=response.content,
+                            file_name=f"reporte_{tipo_reporte_excel}_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            use_container_width=True
+                        )
                     else:
                         st.error("Error al generar Excel")
                 except Exception as e:

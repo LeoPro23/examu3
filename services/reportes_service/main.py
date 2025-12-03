@@ -265,7 +265,11 @@ async def export_excel(report_data: dict):
             os.makedirs("/app/reportes", exist_ok=True)
             df.to_excel(filename, index=False)
             
-            return {"filename": filename, "message": "Excel exportado exitosamente"}
+            return FileResponse(
+                path=filename,
+                filename=os.path.basename(filename),
+                media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al exportar: {str(e)}")
@@ -326,7 +330,11 @@ async def export_pdf(report_data: dict):
         
         doc.build(elements)
         
-        return {"filename": filename, "message": "PDF exportado exitosamente"}
+        return FileResponse(
+            path=filename, 
+            filename=os.path.basename(filename),
+            media_type='application/pdf'
+        )
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al exportar: {str(e)}")
