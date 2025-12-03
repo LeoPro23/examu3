@@ -267,7 +267,7 @@ with tab3:
             ["equipos", "mantenimientos", "proveedores"]
         )
         
-        if st.button("📥 Generar PDF", use_container_width=True)::
+        if st.button("📥 Generar PDF", use_container_width=True):
             with st.spinner("Generando PDF..."):
                 try:
                     response = requests.post(
