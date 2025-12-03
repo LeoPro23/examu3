@@ -129,14 +129,21 @@ CREATE TABLE IF NOT EXISTS notificaciones (
 );
 
 -- Insert initial data for testing
+-- Insert initial data for testing
 INSERT INTO usuarios (username, email, password_hash, rol, nombre_completo) VALUES 
-('admin', 'admin@universidad.edu', 'hashed_password', 'admin', 'Administrador del Sistema');
+('admin', 'admin@universidad.edu', 'hashed_password', 'admin', 'Administrador del Sistema')
+ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO categorias_equipos (nombre, descripcion, vida_util_anos) VALUES 
 ('Computadoras', 'PCs de escritorio y laptops', 5),
 ('Impresoras', 'Impresoras láser y multifuncionales', 4),
-('Redes', 'Routers, switches y access points', 7);
+('Redes', 'Routers, switches y access points', 7)
+ON CONFLICT (nombre) DO NOTHING;
 
-INSERT INTO ubicaciones (edificio, aula_oficina, descripcion) VALUES 
-('Edificio A', 'Lab 101', 'Laboratorio de Computación 1'),
-('Edificio B', 'Oficina TI', 'Oficina principal de TI');
+INSERT INTO ubicaciones (edificio, aula_oficina, descripcion)
+SELECT 'Edificio A', 'Lab 101', 'Laboratorio de Computación 1'
+WHERE NOT EXISTS (SELECT 1 FROM ubicaciones WHERE edificio='Edificio A' AND aula_oficina='Lab 101');
+
+INSERT INTO ubicaciones (edificio, aula_oficina, descripcion)
+SELECT 'Edificio B', 'Oficina TI', 'Oficina principal de TI'
+WHERE NOT EXISTS (SELECT 1 FROM ubicaciones WHERE edificio='Edificio B' AND aula_oficina='Oficina TI');
