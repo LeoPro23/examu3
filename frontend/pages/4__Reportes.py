@@ -154,7 +154,7 @@ with tab2:
             color_continuous_scale='Blues'
         )
         fig1.update_layout(showlegend=False)
-        st.plotly_chart(fig1, use_container_width=True)
+        st.plotly_chart(fig1, use_column_width=True)
     
     st.markdown("---")
     
@@ -175,7 +175,7 @@ with tab2:
                 title='Estado Operativo de Equipos',
                 color_discrete_sequence=px.colors.qualitative.Set2
             )
-            st.plotly_chart(fig2, use_container_width=True)
+            st.plotly_chart(fig2, use_column_width=True)
     
     with col2:
         st.markdown("### 📦 Equipos por Categoría")
@@ -191,7 +191,7 @@ with tab2:
                 title='Distribución por Categoría',
                 color_discrete_sequence=px.colors.qualitative.Pastel
             )
-            st.plotly_chart(fig3, use_container_width=True)
+            st.plotly_chart(fig3, use_column_width=True)
     
     st.markdown("---")
     
@@ -216,7 +216,7 @@ with tab2:
                 labels={'mes': 'Mes', 'total_costo': 'Costo Total ($)'},
                 markers=True
             )
-            st.plotly_chart(fig4, use_container_width=True)
+            st.plotly_chart(fig4, use_column_width=True)
             
             # Gráfico por tipo
             if 'tipo' in df_costos.columns:
@@ -231,7 +231,7 @@ with tab2:
                     color='total_costo',
                     color_continuous_scale='Reds'
                 )
-                st.plotly_chart(fig5, use_container_width=True)
+                st.plotly_chart(fig5, use_column_width=True)
     
     st.markdown("---")
     
@@ -251,7 +251,7 @@ with tab2:
             color='cantidad',
             color_continuous_scale='Oranges'
         )
-        st.plotly_chart(fig6, use_container_width=True)
+        st.plotly_chart(fig6, use_column_width=True)
 
 with tab3:
     st.subheader("Exportar Reportes")
@@ -267,7 +267,7 @@ with tab3:
             ["equipos", "mantenimientos", "proveedores"]
         )
         
-        if st.button("📥 Generar PDF", use_container_width=True):
+        if st.button("📥 Generar PDF", use_column_width=True):
             with st.spinner("Generando PDF..."):
                 try:
                     response = requests.post(
@@ -294,7 +294,7 @@ with tab3:
             ["equipos", "mantenimientos", "proveedores"]
         )
         
-        if st.button("📥 Generar Excel", use_container_width=True):
+        if st.button("📥 Generar Excel", use_column_width=True):
             with st.spinner("Generando Excel..."):
                 try:
                     response = requests.post(
@@ -338,7 +338,7 @@ with tab4:
                     yaxis_title='Valor ($)',
                     showlegend=False
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_column_width=True)
     
     with col2:
         st.markdown("### 🔧 Eficiencia de Mantenimiento")
@@ -369,7 +369,7 @@ with tab4:
                 }
             ))
             
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_column_width=True)
     
     st.markdown("---")
     st.markdown("### 📈 Tendencias")

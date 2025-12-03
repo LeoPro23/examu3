@@ -76,13 +76,13 @@ with tab1:
     with col3:
         st.write("")
         st.write("")
-        if st.button("🔍 Buscar", use_container_width=True):
+        if st.button("🔍 Buscar", use_column_width=True):
             st.rerun()
     
     with col4:
         st.write("")
         st.write("")
-        if st.button("🔄 Actualizar", use_container_width=True):
+        if st.button("🔄 Actualizar", use_column_width=True):
             st.rerun()
     
     # Obtener equipos con filtros
@@ -121,11 +121,11 @@ with tab1:
         if 'Estado' in df_mostrar.columns:
             st.dataframe(
                 df_mostrar.style.applymap(color_estado, subset=['Estado']),
-                use_container_width=True,
+                use_column_width=True,
                 height=400
             )
         else:
-            st.dataframe(df_mostrar, use_container_width=True, height=400)
+            st.dataframe(df_mostrar, use_column_width=True, height=400)
         
         # Detalle de equipo seleccionado
         st.markdown("---")
@@ -223,7 +223,7 @@ with tab2:
         
         notas = st.text_area("Notas / Observaciones", placeholder="Información adicional del equipo...")
         
-        submitted = st.form_submit_button("💾 Guardar Equipo", use_container_width=True)
+        submitted = st.form_submit_button("💾 Guardar Equipo", use_column_width=True)
         
         if submitted:
             if not codigo or not nombre:
