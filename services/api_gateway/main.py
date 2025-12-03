@@ -34,6 +34,35 @@ async def forward_request(method: str, url: str, params: dict = None, json_data:
 async def health_check():
     return {"status": "healthy", "service": "api-gateway"}
 
+@app.on_event("startup")
+async def startup_db():
+    try:
+        import asyncpg
+        DATABASE_URL = os.getenv("DATABASE_URL")
+        if not DATABASE_URL:
+            print("DATABASE_URL not set, skipping init")
+            return
+            
+        # Wait for DB? depends_on handles it mostly.
+        # Read schema
+        schema_path = "/app/database/schema.sql"
+        if os.path.exists(schema_path):
+            with open(schema_path, "r") as f:
+                schema_sql = f.read()
+            
+            conn = await asyncpg.connect(DATABASE_URL)
+            try:
+                await conn.execute(schema_sql)
+                print("Database initialized successfully from schema.sql")
+            except Exception as e:
+                print(f"Error initializing database: {e}")
+            finally:
+                await conn.close()
+        else:
+            print(f"Schema file not found at {schema_path}")
+    except Exception as e:
+        print(f"Startup error: {e}")
+
 # --- Rutas Equipos ---
 @app.api_route("/api/equipos/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
 async def equipos_proxy(path: str, request: Request):
