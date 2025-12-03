@@ -9,8 +9,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - ti_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -30,8 +28,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - ti_network
 
   equipos-service:
     build: ./services/equipos_service
@@ -40,8 +36,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - ti_network
 
   proveedores-service:
     build: ./services/proveedores_service
@@ -50,8 +44,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - ti_network
 
   mantenimiento-service:
     build: ./services/mantenimiento_service
@@ -60,8 +52,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - ti_network
 
   reportes-service:
     build: ./services/reportes_service
@@ -72,8 +62,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - ti_network
 
   agent-service:
     build: ./services/agent_service
@@ -82,8 +70,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - ti_network
 
   # --- Frontend ---
   frontend:
@@ -94,12 +80,11 @@ services:
       - "8501"
     depends_on:
       - api-gateway
-    networks:
-      - ti_network
-
-networks:
-  ti_network:
-    driver: bridge
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8501/_stcore/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
