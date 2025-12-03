@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  # --- Infrastructure ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ti_management
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - ti_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- Microservices ---
+  api-gateway:
+    build: ./services/api_gateway
+    container_name: api-gateway
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/ti_management
+      - EQUIPOS_SERVICE_URL=http://equipos-service:8001
+      - PROVEEDORES_SERVICE_URL=http://proveedores-service:8002
+      - MANTENIMIENTO_SERVICE_URL=http://mantenimiento-service:8003
+      - REPORTES_SERVICE_URL=http://reportes-service:8004
+      - AGENT_SERVICE_URL=http://agent-service:8005
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ti_network
+
+  equipos-service:
+    build: ./services/equipos_service
+    container_name: equipos-service
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/ti_management
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ti_network
+
+  proveedores-service:
+    build: ./services/proveedores_service
+    container_name: proveedores-service
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/ti_management
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ti_network
+
+  mantenimiento-service:
+    build: ./services/mantenimiento_service
+    container_name: mantenimiento-service
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/ti_management
+    ports:
+      - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ti_network
+
+  reportes-service:
+    build: ./services/reportes_service
+    container_name: reportes-service
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/ti_management
+    volumes:
+      - reportes_data:/app/reportes
+    ports:
+      - "8004:8004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ti_network
+
+  agent-service:
+    build: ./services/agent_service
+    container_name: agent-service
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/ti_management
+    ports:
+      - "8005:8005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ti_network
+
+  # --- Frontend ---
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    environment:
+      - API_GATEWAY_URL=http://api-gateway:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api-gateway
+    networks:
+      - ti_network
+
+networks:
+  ti_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  reportes_data:
