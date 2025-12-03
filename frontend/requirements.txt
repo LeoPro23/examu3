@@ -1,4 +1,4 @@
-# Requirements para frontend Streamlit
+# Requirements para frontend Streamlit (Updated v1.2)
 # Ubicación: ./frontend/requirements.txt
 
 streamlit==1.39.0
