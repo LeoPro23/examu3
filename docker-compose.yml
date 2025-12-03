@@ -25,6 +25,8 @@ services:
       - MANTENIMIENTO_SERVICE_URL=http://mantenimiento-service:8003
       - REPORTES_SERVICE_URL=http://reportes-service:8004
       - AGENT_SERVICE_URL=http://agent-service:8005
+    volumes:
+      - ./database:/app/database
     depends_on:
       postgres:
         condition: service_healthy
