@@ -77,7 +77,7 @@ st.markdown("---")
 
 # Sidebar
 with st.sidebar:
-    st.image("https://via.placeholder.com/200x80/667eea/ffffff?text=LOGO+UNI", use_container_width=True)
+    st.image("https://via.placeholder.com/200x80/667eea/ffffff?text=LOGO+UNI", use_column_width=True)
     st.markdown("### 👤 Usuario")
     st.info("**Admin**\nadmin@universidad.edu")
     
