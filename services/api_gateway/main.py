@@ -54,6 +54,18 @@ async def startup_db():
             try:
                 await conn.execute(schema_sql)
                 print("Database initialized successfully from schema.sql")
+                
+                # Execute seeds if they exist
+                seeds_path = "/app/database/seeds.sql"
+                if os.path.exists(seeds_path):
+                    with open(seeds_path, "r", encoding="utf-8") as f:
+                        seeds_sql = f.read()
+                    print("Executing seeds.sql...")
+                    await conn.execute(seeds_sql)
+                    print("Seeds executed successfully")
+                else:
+                    print(f"Seeds file not found at {seeds_path}")
+                    
             except Exception as e:
                 print(f"Error initializing database: {e}")
             finally:
